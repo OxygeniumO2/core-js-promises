@@ -18,11 +18,13 @@
  * 1    => promise that will be fulfilled
  */
 function getPromise(number) {
-  const prom = new Promise((resolve, reject) => {
-    if (number > 0) resolve();
-    if (number < 0) reject();
+  return new Promise((resolve, reject) => {
+    if (number >= 0) {
+      resolve(number);
+    } else {
+      reject(new Error());
+    }
   });
-  return prom;
 }
 
 /**
@@ -107,11 +109,16 @@ function getFirstPromiseResult(promises) {
  * [Promise.resolve(1), Promise.reject(2), Promise.resolve(3)] => Promise rejected with 2
  */
 function getAllOrNothing(promises) {
-  return Promise.all(promises)
-    .then((value) => {
-      return value;
-    })
-    .catch((value) => value);
+  return Promise.allSettled(promises).then((res) => {
+    const rejectedPromise = res.find((obj) => obj.status === 'rejected');
+    if (rejectedPromise) {
+      return Promise.reject(rejectedPromise.reason);
+    }
+    const result = res.map((obj) => {
+      return obj.value;
+    });
+    return result;
+  });
 }
 
 /**
